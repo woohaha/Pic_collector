@@ -31,7 +31,8 @@ class find_163_img:
                     for x in \
                     self.__soup.find_all('img', \
                                          src = 'http://r.ph.126.net/image/sniff.png')]
-        self.images = dict(zip(self.label, self.img_addr))
+        # self.images = dict(zip(self.label, self.img_addr))
+
 
 def download_imgs(download_dir,img_addr,classified):
     # make_index=True
@@ -49,9 +50,9 @@ def download_imgs(download_dir,img_addr,classified):
 
     for image in img_addr:
         PATH = ''.join((classified_PATH, \
-                        str(img_addr.index('image') + 1), '_', \
+                        str(img_addr.index(image) + 1), '_', \
                         os.path.basename(image)))
-        r=requests.get(img_addr[image_index], stream=True)
+        r = requests.get(image, stream=True)
         if r.status_code == 200:
             with open(PATH, 'wb') as f:
                 for chunk in r.iter_content():
@@ -70,8 +71,8 @@ except:
 
 if 'cl' in url.split('/')[2]:
     img = find_cl_img(url)
-    download_dir = 'd:/lll/'
+    download_dir = os.path.expanduser('~') + '/lll/'
 else:
     img = find_163_img(url)
-    download_dir = 'd:/163/'
+    download_dir = os.path.expanduser('~') + '/163/'
 download_imgs(download_dir, img.img_addr, img.article_name)
