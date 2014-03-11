@@ -63,7 +63,7 @@ def download_imgs(download_dir,img_addr,classified):
             with open(PATH, 'wb') as f:
                 for chunk in r.iter_content():
                     f.write(chunk)
-            print('Downloading {}/{}'.format(downloading,To_be_down), end='\r')
+            print('Remain {}/{}'.format(downloading,To_be_down), end='\r')
             downloading-=1
     print('Complete. {} Pics downloaded at {}'.format(To_be_down,classified_PATH))
 
