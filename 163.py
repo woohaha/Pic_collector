@@ -26,8 +26,7 @@ class find_163_img:
 
 # TODO 增加下载cl的类
 def download_imgs(download_dir,img_addr,img_label,classified):
-
-    make_index=True
+    # make_index=True
     classified_PATH=''.join((download_dir,classified,'/'))
     To_be_down=len(img_addr)
     downloading=To_be_down
@@ -54,8 +53,12 @@ def download_imgs(download_dir,img_addr,img_label,classified):
     print('Complete. {} Pics downloaded at {}'.format(To_be_down,classified_PATH))
 
 # TODO 自动生成gallery
+# TODO 多线程下载
 
-url=input('相冊地址: ')
+try:
+    url = sys.argv[1]
+except:
+    url = input('Album Address: ')
 img_163 = find_163_img(url)
 download_dir='d:/163/'
 download_imgs(download_dir,img_163.img_addr,img_163.label,img_163.article_name)
