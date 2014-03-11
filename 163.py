@@ -8,8 +8,7 @@ import glob
 import sys
 
 
-class find_cl:
-
+class find_cl_img:
     def __init__(self, url):
         self.url = url
         self.__soup = BeautifulSoup(
@@ -20,8 +19,6 @@ class find_cl:
         self.img_addr = [x['src'] \
                          for x in \
                          self.__soup.find_all('input', type="image")]
-        self.tag = re.search(r'\[.*?\]', self.article_name)
-
 
 class find_163_img:
 
@@ -34,12 +31,8 @@ class find_163_img:
                     for x in \
                     self.__soup.find_all('img', \
                                          src = 'http://r.ph.126.net/image/sniff.png')]
-        self.label = [x.get_text() \
-                      for x in \
-                      self.__soup.find_all('p', 'pic-index')]
         self.images = dict(zip(self.label, self.img_addr))
 
-# TODO 增加下载cl的类
 def download_imgs(download_dir,img_addr,classified):
     # make_index=True
     classified_PATH=''.join((download_dir,classified,'/'))
@@ -74,6 +67,11 @@ try:
     url = sys.argv[1]
 except:
     url = input('Album Address: ')
-img_163 = find_163_img(url)
-download_dir='d:/163/'
-download_imgs(download_dir,img_163.img_addr,img_163.article_name)
+
+if 'cl' in url.split('/')[2]:
+    img = find_cl_img(url)
+    download_dir = 'd:/lll/'
+else:
+    img = find_163_img(url)
+    download_dir = 'd:/163/'
+download_imgs(download_dir, img.img_addr, img.article_name)
