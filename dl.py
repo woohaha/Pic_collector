@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 import os
 import glob
 import sys
+import concurrent.futures
 
 
 global header
@@ -29,7 +30,8 @@ class find_163_img:
         self.url = url
         self.__soup = BeautifulSoup(requests.get(url, headers=header).content)
 
-        self.article_name = self.__soup.find_all('meta')[2]['content'].replace(' ', '_')
+        self.article_name = self.__soup.find_all('meta')[2]['content'] \
+            .replace(' ', '_').replace('<', '[').replace('>', ']')
         self.img_addr = [x['data-lazyload-src'] \
                     for x in \
                     self.__soup.find_all('img', \
@@ -37,10 +39,47 @@ class find_163_img:
         # self.images = dict(zip(self.label, self.img_addr))
 
 
-def download_imgs(download_dir,img_addr,classified):
-    # make_index=True
+def MT_download(download_dir, img_addrs, classified):
+    def download(img_addr, img_index):
+
+        PATH = ''.join((classified_PATH, \
+                        str(img_index + 1), '_', \
+                        os.path.basename(img_addr)))
+        try:
+            r = requests.get(img_addr, headers=header, stream=True)
+        except:
+            raise Exception('Image is unreachable')
+        if r.ok:
+            with open(PATH, 'wb') as f:
+                for chunk in r.iter_content():
+                    f.write(chunk)
+            print('{} Finished'.format(img_addr))
+
+    classified_PATH = ''.join((download_dir, classified, '/'))
+    if not os.path.exists(classified_PATH):
+        os.makedirs(classified_PATH)
+    else:
+        go_on = input('Folder exist containing {} files, Overwrite?[Y/n]:' \
+                      .format(len(os.listdir(classified_PATH))))
+        if go_on.lower() == 'n':
+            print('Downloading Abort.')
+            exit(0)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        futureIteams = {executor.submit(download, item, img_addrs.index(item)): item for item in img_addrs}
+        for future in concurrent.futures.as_completed(futureIteams):
+            url = futureIteams[future]
+            try:
+                data = future.result()
+            except Exception as exc:
+                print('{} generated an exception: {}'.format(url, exc))
+
+    print('All images are downloaded at {}'.format(classified_PATH))
+
+
+def download_queue(download_dir, img_addrs, classified):
     classified_PATH=''.join((download_dir,classified,'/'))
-    To_be_down=len(img_addr)
+    To_be_down = len(img_addrs)
     downloading=To_be_down
     if not os.path.exists(classified_PATH):
         os.makedirs(classified_PATH)
@@ -51,9 +90,9 @@ def download_imgs(download_dir,img_addr,classified):
             print('Downloading Abort.')
             exit(0)
 
-    for image in img_addr:
+    for image in img_addrs:
         PATH = ''.join((classified_PATH, \
-                        str(img_addr.index(image) + 1), '_', \
+                        str(img_addrs.index(image) + 1), '_', \
                         os.path.basename(image)))
         try:
             r = requests.get(image, headers=header, stream=True)
@@ -68,7 +107,6 @@ def download_imgs(download_dir,img_addr,classified):
     print('Complete. {} Pics downloaded at {}'.format(To_be_down,classified_PATH))
 
 # TODO 自动生成gallery
-# TODO 多线程下载
 
 try:
     url = sys.argv[1]
@@ -83,4 +121,6 @@ else:
     download_dir = os.path.expanduser('~') + '/163/'
 
 # print(img.img_addr)
-download_imgs(download_dir, img.img_addr, img.article_name)
+# download_queue(download_dir, img.img_addr, img.article_name)
+MT_download(download_dir, img.img_addr, img.article_name)
+
