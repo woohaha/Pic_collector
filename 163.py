@@ -76,3 +76,4 @@ else:
     img = find_163_img(url)
     download_dir = os.path.expanduser('~') + '/163/'
 download_imgs(download_dir, img.img_addr, img.article_name)
+# Abandoned
