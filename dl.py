@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import requests
+from lxml import etree
 from bs4 import BeautifulSoup
 import os
 import glob
@@ -43,7 +44,7 @@ def MT_download(download_dir, img_addrs, classified):
     def download(img_addr, img_index):
 
         PATH = ''.join((classified_PATH, \
-                        str(img_index + 1), '_', \
+                        str(img_index + 1).zfill(2), '_', \
                         os.path.basename(img_addr)))
         try:
             r = requests.get(img_addr, headers=header, stream=True)
@@ -92,7 +93,7 @@ def download_queue(download_dir, img_addrs, classified):
 
     for image in img_addrs:
         PATH = ''.join((classified_PATH, \
-                        str(img_addrs.index(image) + 1), '_', \
+                        str(img_addrs.index(image) + 1).zfill(2), '_', \
                         os.path.basename(image)))
         try:
             r = requests.get(image, headers=header, stream=True)
@@ -105,6 +106,22 @@ def download_queue(download_dir, img_addrs, classified):
             print('Remain {}/{}'.format(downloading,To_be_down), end='\r')
             downloading-=1
     print('Complete. {} Pics downloaded at {}'.format(To_be_down,classified_PATH))
+
+def mkindex(download_dir, classifed=''):
+    imgs = glob.glob(download_dir + classifed + '/*')
+    imgs.sort()
+    page = etree.Element('html')
+    doc = etree.ElementTree(page)
+    headElt = etree.SubElement(page, 'head')
+    bodyElt = etree.SubElement(page, 'body')
+    titleElt = etree.SubElement(headElt, 'title')
+    titleElt.text = classifed
+    for img in imgs:
+        imgElt = etree.SubElement(bodyElt, 'img', src=os.path.basename(img))
+        brElt = etree.SubElement(bodyElt,'br')
+        brElt = etree.SubElement(bodyElt,'br')
+    with open(download_dir + classifed + '/index.html', 'wb')as f:
+        doc.write(f)
 
 # TODO 自动生成gallery
 
@@ -123,4 +140,4 @@ else:
 # print(img.img_addr)
 # download_queue(download_dir, img.img_addr, img.article_name)
 MT_download(download_dir, img.img_addr, img.article_name)
-
+mkindex(download_dir,img.article_name)
