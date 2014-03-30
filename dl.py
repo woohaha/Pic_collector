@@ -125,7 +125,8 @@ def mkindex(download_dir, classifed=''):
         htm.write(head)
         imgs = glob.glob(download_dir + classifed + '/*.jpg')
         for img in imgs:
-            htm.write('<a href={0}><img src={0} width=100/></a>'.format(img))
+            htm.write('''<a href={0}>
+                      <img src={0} width=100/></a>'''.format(img.split('/')[-1]))
         htm.write(tail)
 
 # TODO 自动生成gallery
