@@ -8,6 +8,7 @@ import os
 import glob
 import sys
 import concurrent.futures
+import re
 
 
 global header
@@ -43,6 +44,18 @@ class find_163_img:
                          self.__soup.find_all('img',
                                               src='http://r.ph.126.net/image/sniff.png')]
         # self.images = dict(zip(self.label, self.img_addr))
+
+class find_poco_img:
+
+    def __init__(self, url):
+        self.url=url
+        self.__soup = BeautifulSoup(requests.get(url, headers=header).content)
+
+        self.article_name = self.__soup.find('h1','mt10').text.strip(' ').replace(' ','_')
+        patten=re.compile(r"photoImgArr\[\d+\]\.orgimg = \'(.*?)\';")
+        script=self.__soup.find_all('script')
+
+        self.img_addr=re.findall(patten,script[15].text)
 
 
 def MT_download(download_dir, img_addrs, classified):
@@ -139,9 +152,12 @@ except:
 if 'cl' in url.split('/')[2]:
     img = find_cl_img(url)
     download_dir = os.path.expanduser('~') + '/lll/'
-else:
+elif '163' in url.split('/')[2]:
     img = find_163_img(url)
     download_dir = os.path.expanduser('~') + '/163/'
+elif 'poco' in url.split('/')[2]:
+    img = find_poco_img(url)
+    download_dir = os.path.expanduser('~') + '/poco/'
 
 # print(img.img_addr)
 # download_queue(download_dir, img.img_addr, img.article_name)
