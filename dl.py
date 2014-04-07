@@ -49,13 +49,14 @@ class find_poco_img:
 
     def __init__(self, url):
         self.url=url
-        self.__soup = BeautifulSoup(requests.get(url, headers=header).content)
+        self.page=requests.get(url, headers=header)
+        self.__soup = BeautifulSoup(self.page.content)
 
         self.article_name = self.__soup.find('h1','mt10').text.strip(' ').replace(' ','_')
-        patten=re.compile(r"photoImgArr\[\d+\]\.orgimg = \'(.*?)\';")
+        pattern=re.compile(r"photoImgArr\[\d+\]\.orgimg = \'(.*?)\';")
         script=self.__soup.find_all('script')
 
-        self.img_addr=re.findall(patten,script[15].text)
+        self.img_addr=re.findall(pattern,self.page.text)
 
 
 def MT_download(download_dir, img_addrs, classified):
@@ -72,7 +73,7 @@ def MT_download(download_dir, img_addrs, classified):
             with open(PATH, 'wb') as f:
                 for chunk in r.iter_content():
                     f.write(chunk)
-            print('{} Finished'.format(img_addr))
+            print('{} Finished'.format(img_addr),end='\r')
 
     classified_PATH = ''.join((download_dir, classified, '/'))
     if not os.path.exists(classified_PATH):
@@ -94,7 +95,7 @@ def MT_download(download_dir, img_addrs, classified):
             except Exception as exc:
                 print('{} generated an exception: {}'.format(url, exc))
 
-    print('All images are downloaded at {}'.format(classified_PATH))
+    print('{} images downloaded at {}'.format(len(os.listdir(classified_PATH)),classified_PATH))
 
 
 def download_queue(download_dir, img_addrs, classified):
