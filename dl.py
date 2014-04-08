@@ -44,26 +44,46 @@ class find_163_img:
                                               src='http://r.ph.126.net/image/sniff.png')]
         # self.images = dict(zip(self.label, self.img_addr))
 
+
 class find_poco_img:
 
     def __init__(self, url):
-        self.url=url
-        page=requests.get(url, headers=header)
+        self.url = url
+        page = requests.get(url, headers=header)
         self.__soup = BeautifulSoup(page.content)
 
-        self.article_name = self.__soup.find('h1','mt10').text.strip(' ').replace(' ','_')
-        pattern=re.compile(r"photoImgArr\[\d+\]\.orgimg = \'(.*?)\';")
+        self.article_name = self.__soup.find(
+            'h1', 'mt10').text.strip(' ').replace(' ', '_')
+        pattern = re.compile(r"photoImgArr\[\d+\]\.orgimg = \'(.*?)\';")
 
-        self.img_addr=re.findall(pattern,page.text)
+        self.img_addr = re.findall(pattern, page.text)
+
 
 class find_meizitu_img:
 
-    def __init__(self,url):
-        self.url=url
-        self.__soup=BeautifulSoup(requests.get(url, headers=header).content)
+    def __init__(self, url):
+        self.url = url
+        self.__soup = BeautifulSoup(requests.get(url, headers=header).content)
 
-        self.article_name = self.__soup.find_all('h2')[1].find('a').text
-        self.img_addr=[x['src'] for x in self.__soup.find('div',id='picture').find_all('img')]
+        self.article_name = self.__soup.find_all(
+            'h2')[1].find('a').text.replace(' ', '_')
+        self.img_addr = [x['src']
+                         for x in self.__soup.find('div', id='picture').find_all('img')]
+
+
+class find_curator_img:
+
+    def __init__(self, url):
+        self.url = url
+        self.__soup = BeautifulSoup(requests.get(url, headers=header).content)
+
+        self.article_name = self.__soup.h1.text.strip(
+            ' ').replace(' ', '_') + '_' + self.url.split('/')[-2]
+        self.img_addr = [
+            'http://' + x['src'].split('/', 11)[-1] for x in self.__soup.find_all('img', 'god')]
+        self.img_addr.insert(
+            0, 'http://' + self.__soup.find('img', 'profile_image')['src'].split('/', 5)[-1])
+
 
 def MT_download(download_dir, img_addrs, classified):
     def download(img_addr, img_index):
@@ -79,7 +99,7 @@ def MT_download(download_dir, img_addrs, classified):
             with open(PATH, 'wb') as f:
                 for chunk in r.iter_content():
                     f.write(chunk)
-            print('{} Finished'.format(img_addr),end='\r')
+            print('{} Finished'.format(img_addr), end='\r')
 
     classified_PATH = ''.join((download_dir, classified, '/'))
     if not os.path.exists(classified_PATH):
@@ -101,7 +121,8 @@ def MT_download(download_dir, img_addrs, classified):
             except Exception as exc:
                 print('{} generated an exception: {}'.format(url, exc))
 
-    print('{} images downloaded at {}'.format(len(os.listdir(classified_PATH)),classified_PATH))
+    print('{} images downloaded at {}'.format(
+        len(os.listdir(classified_PATH)), classified_PATH))
 
 
 def download_queue(download_dir, img_addrs, classified):
@@ -166,6 +187,9 @@ elif 'poco' in url.split('/')[2]:
 elif 'meizitu' in url.split('/')[2]:
     img = find_meizitu_img(url)
     download_dir = os.path.expanduser('~') + '/meizitu/'
+elif 'curator' in url.split('/')[2]:
+    img = find_curator_img(url)
+    download_dir = os.path.expanduser('~') + '/curator/'
 else:
     print('No pattern found.')
     sys.exit(1)
