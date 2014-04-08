@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import requests
-from lxml import etree
 from bs4 import BeautifulSoup
 import os
 import glob
@@ -49,15 +48,22 @@ class find_poco_img:
 
     def __init__(self, url):
         self.url=url
-        self.page=requests.get(url, headers=header)
-        self.__soup = BeautifulSoup(self.page.content)
+        page=requests.get(url, headers=header)
+        self.__soup = BeautifulSoup(page.content)
 
         self.article_name = self.__soup.find('h1','mt10').text.strip(' ').replace(' ','_')
         pattern=re.compile(r"photoImgArr\[\d+\]\.orgimg = \'(.*?)\';")
-        script=self.__soup.find_all('script')
 
-        self.img_addr=re.findall(pattern,self.page.text)
+        self.img_addr=re.findall(pattern,page.text)
 
+class find_meizitu_img:
+
+    def __init__(self,url):
+        self.url=url
+        self.__soup=BeautifulSoup(requests.get(url, headers=header).content)
+
+        self.article_name = self.__soup.find_all('h2')[1].find('a').text
+        self.img_addr=[x['src'] for x in self.__soup.find('div',id='picture').find_all('img')]
 
 def MT_download(download_dir, img_addrs, classified):
     def download(img_addr, img_index):
@@ -143,8 +149,6 @@ def mkindex(download_dir, classifed=''):
                       <img src={0} width=100/></a>'''.format(img.split('/')[-1]))
         htm.write(tail)
 
-# TODO 自动生成gallery
-
 try:
     url = sys.argv[1]
 except:
@@ -159,8 +163,13 @@ elif '163' in url.split('/')[2]:
 elif 'poco' in url.split('/')[2]:
     img = find_poco_img(url)
     download_dir = os.path.expanduser('~') + '/poco/'
+elif 'meizitu' in url.split('/')[2]:
+    img = find_meizitu_img(url)
+    download_dir = os.path.expanduser('~') + '/meizitu/'
+else:
+    print('No pattern found.')
+    sys.exit(1)
 
-# print(img.img_addr)
 # download_queue(download_dir, img.img_addr, img.article_name)
 MT_download(download_dir, img.img_addr, img.article_name)
 mkindex(download_dir, img.article_name)
