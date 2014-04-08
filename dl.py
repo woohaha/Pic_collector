@@ -100,7 +100,7 @@ class find_curator_img:
             0, 'http://' + self.__soup.find('img', 'profile_image')['src'].split('/', 5)[-1])
 
 
-def MT_download(download_dir, img_addrs, classified):
+def MT_download(download_dir, img_addrs, classified, workers=10):
     def download(img_addr, img_index):
 
         PATH = ''.join((classified_PATH,
@@ -126,7 +126,7 @@ def MT_download(download_dir, img_addrs, classified):
             print('Downloading Abort.')
             exit(0)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         futureIteams = {executor.submit(
             download, item, img_addrs.index(item)): item for item in img_addrs}
         for future in concurrent.futures.as_completed(futureIteams):
