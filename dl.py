@@ -16,6 +16,9 @@ header = {'User-Agent':
 
 
 class find_cl_img:
+    '''
+    例：http://cl.man.lv/....
+    '''
 
     def __init__(self, url):
         self.url = url
@@ -31,6 +34,9 @@ class find_cl_img:
 
 
 class find_163_img:
+    '''
+    例：http://pp.163.com/superbunny/pp/12307173.html
+    '''
 
     def __init__(self, url):
         self.url = url
@@ -46,6 +52,9 @@ class find_163_img:
 
 
 class find_poco_img:
+    '''
+    例：http://my.poco.cn/lastphoto_v2.htx&id=3654521&user_id=54967495&p=0&temp=1182
+    '''
 
     def __init__(self, url):
         self.url = url
@@ -60,6 +69,9 @@ class find_poco_img:
 
 
 class find_meizitu_img:
+    '''
+    例：http://www.meizitu.com/a/4154.html
+    '''
 
     def __init__(self, url):
         self.url = url
@@ -72,6 +84,9 @@ class find_meizitu_img:
 
 
 class find_curator_img:
+    '''
+    例：http://curator.im/girl_of_the_day/2014-04-08/
+    '''
 
     def __init__(self, url):
         self.url = url
