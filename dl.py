@@ -33,6 +33,34 @@ class find_cl_img:
                          self.__soup.find_all('input', type="image")]
 
 
+class find_flickr_img:
+    '''
+    例：https://www.flickr.com/photos/astiya/sets/72157642803390374
+    '''
+
+    def __init__(self, url):
+        self.url=url
+        self.__soup = BeautifulSoup(requests.get(url, headers=header).content)
+
+        self.article_name=self.__soup.h1.string
+
+        self.img_addr=[]
+        #self.img_addr=[re.sub(r'\.jpg','_b.jpg',x['data-defer-src']) for x in self.__soup.find_all('img','pc_img')]
+        def get_img(url):
+            soup=BeautifulSoup(requests.get(url, headers=header).content)
+            for x in soup.find_all('img','pc_img'):
+                self.img_addr.append(re.sub(r'\.jpg','_b.jpg',x['data-defer-src']))
+
+            try:
+                href_nextpage=soup.find('a','Next rapidnofollow')['href']
+                nextpage='https://www.flickr.com'+href_nextpage
+                get_img(nextpage)
+            except:
+                pass
+
+        get_img(self.url)
+
+
 class find_163_img:
     '''
     例：http://pp.163.com/superbunny/pp/12307173.html
@@ -205,10 +233,14 @@ elif 'meizitu' in url.split('/')[2]:
 elif 'curator' in url.split('/')[2]:
     img = find_curator_img(url)
     download_dir = os.path.expanduser('~') + '/curator/'
+elif 'flickr' in url.split('/')[2]:
+    img = find_flickr_img(url)
+    download_dir = os.path.expanduser('~') + '/flickr/'
 else:
     print('No pattern found.')
     sys.exit(1)
 
 # download_queue(download_dir, img.img_addr, img.article_name)
+#print(download_dir+'\n'+ str(len(img.img_addr))+'\n'+ img.article_name)
 MT_download(download_dir, img.img_addr, img.article_name)
 mkindex(download_dir, img.article_name)
