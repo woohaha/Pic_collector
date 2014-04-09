@@ -218,15 +218,13 @@ try:
 except:
     url = input('Album Address: ')
 
+MT=True
 if 'cl' in url.split('/')[2]:
     img = find_cl_img(url)
     download_dir = os.path.expanduser('~') + '/lll/'
 elif '163' in url.split('/')[2]:
     img = find_163_img(url)
     download_dir = os.path.expanduser('~') + '/163/'
-elif 'poco' in url.split('/')[2]:
-    img = find_poco_img(url)
-    download_dir = os.path.expanduser('~') + '/poco/'
 elif 'meizitu' in url.split('/')[2]:
     img = find_meizitu_img(url)
     download_dir = os.path.expanduser('~') + '/meizitu/'
@@ -236,11 +234,13 @@ elif 'curator' in url.split('/')[2]:
 elif 'flickr' in url.split('/')[2]:
     img = find_flickr_img(url)
     download_dir = os.path.expanduser('~') + '/flickr/'
-else:
-    print('No pattern found.')
-    sys.exit(1)
+elif 'poco' in url.split('/')[2]:
+    img = find_poco_img(url)
+    download_dir = os.path.expanduser('~') + '/poco/'
+    MT=False
+
+MT_download(download_dir, img.img_addr, img.article_name) if MT else download_queue(download_dir, img.img_addr, img.article_name)
+mkindex(download_dir, img.article_name)
 
 # download_queue(download_dir, img.img_addr, img.article_name)
 #print(download_dir+'\n'+ str(len(img.img_addr))+'\n'+ img.article_name)
-MT_download(download_dir, img.img_addr, img.article_name)
-mkindex(download_dir, img.article_name)
