@@ -166,11 +166,23 @@ def MT_download(download_dir, img_addrs, classified, workers=10):
             url = futureIteams[future]
             try:
                 data = future.result()
+                if url in failed:
+                    failed.remove(url)
             except Exception as exc:
                 print('{} generated an exception: {}'.format(url, exc))
+                failed.add(url)
 
-    print('{} images downloaded at {}'.format(
-        len(os.listdir(classified_PATH)), classified_PATH))
+    if failed:
+        prompt=input('There are {} images downloaded failed, retry?[Y/n]:',end='')
+        if prompt.upper()=='Y':
+            MT_download(download_dir, list(failed), classified, workers=2)
+        else:
+            print('{} images downloaded at {}, while {} failed.'.format(
+                len(os.listdir(classified_PATH)), classified_PATH, len(failed)))
+    else:
+        print('{} images downloaded at {}'.format(
+            len(os.listdir(classified_PATH)), classified_PATH))
+
 
 
 def download_queue(download_dir, img_addrs, classified):
@@ -225,6 +237,7 @@ except:
 
 MT=True
 workers=10
+failed=set()
 if 'cl' in url.split('/')[2]:
     img = find_cl_img(url)
     download_dir = os.path.expanduser('~') + '/lll/'
