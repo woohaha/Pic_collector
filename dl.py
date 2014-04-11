@@ -82,6 +82,7 @@ class find_163_img:
 class find_poco_img:
     '''
     例：http://my.poco.cn/lastphoto_v2.htx&id=3654521&user_id=54967495&p=0&temp=1182
+    or: http://photo.poco.cn/lastphoto-htx-id-3883441-p-0.xhtml
     '''
 
     def __init__(self, url):
@@ -89,11 +90,15 @@ class find_poco_img:
         page = requests.get(url, headers=header)
         self.__soup = BeautifulSoup(page.content)
 
-        self.article_name = self.__soup.find(
-            'h1', 'mt10').text.strip(' ').replace(' ', '_')
         pattern = re.compile(r"photoImgArr\[\d+\]\.orgimg = \'(.*?)\';")
+        try:
+            self.article_name = self.__soup.find(
+                'h1', 'mt10').text.strip(' ').replace(' ', '_')
+            self.img_addr = re.findall(pattern, page.text)
+        except AttributeError:
+            self.article_name = self.__soup.h3.string.strip(' ').replace(' ','_')
+            self.img_addr=[x['data_org_bimg'] for x in self.__soup.find_all('img','photo-item')]
 
-        self.img_addr = re.findall(pattern, page.text)
 
 
 class find_meizitu_img:
@@ -219,6 +224,7 @@ except:
     url = input('Album Address: ')
 
 MT=True
+workers=10
 if 'cl' in url.split('/')[2]:
     img = find_cl_img(url)
     download_dir = os.path.expanduser('~') + '/lll/'
@@ -237,9 +243,10 @@ elif 'flickr' in url.split('/')[2]:
 elif 'poco' in url.split('/')[2]:
     img = find_poco_img(url)
     download_dir = os.path.expanduser('~') + '/poco/'
-    MT=False
+    #MT=False
+    workers=2
 
-MT_download(download_dir, img.img_addr, img.article_name) if MT else download_queue(download_dir, img.img_addr, img.article_name)
+MT_download(download_dir, img.img_addr, img.article_name, workers=workers) if MT else download_queue(download_dir, img.img_addr, img.article_name)
 mkindex(download_dir, img.article_name)
 
 # download_queue(download_dir, img.img_addr, img.article_name)
