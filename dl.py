@@ -141,9 +141,13 @@ def MT_download(download_dir, img_addrs, classified, workers=10):
                         os.path.basename(img_addr)))
         try:
             r = requests.get(img_addr, headers=header, stream=True)
-        except:
-            raise Exception('Image is unreachable')
-        if r.ok:
+        except Exception as Exc:
+            print(Exc)
+        try:
+            img_status=os.stat(PATH).st_size
+        except FileNotFoundError:
+            img_status=0
+        if r.ok and img_status!=int(r.headers['content-length']):
             with open(PATH, 'wb') as f:
                 for chunk in r.iter_content():
                     f.write(chunk)
@@ -153,7 +157,7 @@ def MT_download(download_dir, img_addrs, classified, workers=10):
     if not os.path.exists(classified_PATH):
         os.makedirs(classified_PATH)
     else:
-        go_on = input('Folder exist containing {} files, Overwrite?[Y/n]:'
+        go_on = input('Folder exist containing {} files, go ahead?[Y/n]:'
                       .format(len(os.listdir(classified_PATH))))
         if go_on.lower() == 'n':
             print('Downloading Abort.')
