@@ -8,9 +8,10 @@ import glob
 import sys
 import concurrent.futures
 import re
+import json
 
 
-#initial
+# initial
 failed = set()
 global header
 header = {'User-Agent':
@@ -65,6 +66,18 @@ class find_flickr_img:
                 pass
 
         get_img(self.url)
+
+
+class find_instagram_img:
+
+    def __init__(self, url):
+        self.url = url
+        soup = BeautifulSoup(requests.get(url, headers=header).content)
+
+        self.article_name = self.url.split('/')[3]
+        quary_json=json.loads(soup.find_all('script')[3].string[21:-1])
+        self.img_addr = [x['images']['standard_resolution']['url'] for x in quary_json['entry_data']['UserProfile'][0]['userMedia']]
+        self.img_addr=self.img_addr[::-1]
 
 
 class find_163_img:
@@ -151,18 +164,18 @@ def MT_download(download_dir, img_addrs, classified, workers=10):
                         str(img_index + 1).zfill(2), '_',
                         os.path.basename(img_addr)))
         try:
-            r = requests.get(img_addr, headers=header, stream=True)
-        except Exception as Exc:
-            print(Exc)
-        try:
             img_status = os.stat(PATH).st_size
         except FileNotFoundError:
             img_status = 0
-        if r.ok and img_status != int(r.headers['content-length']):
-            with open(PATH, 'wb') as f:
-                for chunk in r.iter_content():
-                    f.write(chunk)
-            print('{} Finished'.format(img_addr), end='\r')
+        try:
+            r = requests.get(img_addr, headers=header, stream=True)
+            if r.ok and img_status != int(r.headers['content-length']):
+                with open(PATH, 'wb') as f:
+                    for chunk in r.iter_content():
+                        f.write(chunk)
+                print('{} Finished'.format(img_addr), end='\r')
+        except Exception as Exc:
+            print(Exc)
 
     classified_PATH = ''.join((download_dir, classified, '/'))
     if not os.path.exists(classified_PATH):
@@ -275,6 +288,9 @@ if __name__ == '__main__':
         download_dir = os.path.expanduser('~') + '/poco/'
         # MT=False
         workers = 2
+    elif 'instagram' in url.split('/')[2]:
+        img = find_instagram_img(url)
+        download_dir = os.path.expanduser('~') + '/instagram/'
 
     MT_download(download_dir, img.img_addr, img.article_name, workers=workers) if MT else download_queue(
         download_dir, img.img_addr, img.article_name)
