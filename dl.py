@@ -75,9 +75,28 @@ class find_instagram_img:
         soup = BeautifulSoup(requests.get(url, headers=header).content)
 
         self.article_name = self.url.split('/')[3]
-        quary_json=json.loads(soup.find_all('script')[3].string[21:-1])
-        self.img_addr = [x['images']['standard_resolution']['url'] for x in quary_json['entry_data']['UserProfile'][0]['userMedia']]
-        self.img_addr=self.img_addr[::-1]
+        quary_json = json.loads(soup.find_all('script')[3].string[21:-1])
+        self.img_addr = [x['images']['standard_resolution']['url']
+                         for x in quary_json['entry_data']['UserProfile'][0]['userMedia']]
+        json_url = 'http://instagram.com/chloefi/media?max_id='
+        # moreAvailable: ['entry_data']['UserProfile'][0]['moreAvailable']
+
+        def get_more_img(url):
+            nextpage = requests.get(url).json()
+            #img_buf=[x['images']['standard_resolution']['url'] for x in nextpage['items']]
+            for item in nextpage['items']:
+                self.img_addr.append(
+                    item['images']['standard_resolution']['url'])
+
+            max_id = nextpage['items'][-1]['id']
+            if nextpage['more_available']:
+                get_more_img(json_url + max_id)
+
+        if quary_json['entry_data']['UserProfile'][0]['moreAvailable']:
+            get_more_img(
+                json_url + quary_json['entry_data']['UserProfile'][0]['userMedia'][-1]['id'])
+
+        self.img_addr = self.img_addr[::-1]
 
 
 class find_163_img:
@@ -291,6 +310,12 @@ if __name__ == '__main__':
     elif 'instagram' in url.split('/')[2]:
         img = find_instagram_img(url)
         download_dir = os.path.expanduser('~') + '/instagram/'
+        with open(download_dir+img.article_name + '.dl', 'w')as f:
+            f.write('\n'.join(img.img_addr))
+        print('Total {}'.format(len(img.img_addr)))
+        prompt = input('Continue Download?[y/N]:')
+        if prompt.upper() != 'Y':
+            sys.exit(0)
 
     MT_download(download_dir, img.img_addr, img.article_name, workers=workers) if MT else download_queue(
         download_dir, img.img_addr, img.article_name)
