@@ -182,6 +182,9 @@ class find_curator_img:
             ' ').replace(' ', '_') + '_' + self.url.split('/')[-2]
         self.img_addr = [
             'http://' + x['src'].split('/', 11)[-1] for x in self.__soup.find_all('img', 'god')]
+        if self.img_addr==[]:
+            self.img_addr=[
+                'http://' + x['src'].split('/', 5)[-1] for x in self.__soup.find_all('img',itemprop='contentURL')]
         self.img_addr.insert(
             0, 'http://' + self.__soup.find('img', 'profile_image')['src'].split('/', 5)[-1])
 
