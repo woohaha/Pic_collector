@@ -181,7 +181,7 @@ class find_curator_img:
         self.article_name = self.__soup.h1.text.strip(
             ' ').replace(' ', '_') + '_' + self.url.split('/')[-2]
         self.img_addr = [
-            'http://' + x['src'].split('/', 11)[-1] for x in self.__soup.find_all('img', 'god')]
+            'http://' + x['src'].split('/', 5)[-1] for x in self.__soup.find_all('img', 'god')]
         if self.img_addr==[]:
             self.img_addr=[
                 'http://' + x['src'].split('/', 5)[-1] for x in self.__soup.find_all('img',itemprop='contentURL')]
