@@ -27,6 +27,36 @@ class find_example_img:
         self.article_name = '這個attr用於劃分子目錄'
         self.img_addr = ['這個attr是一個list','用於保存圖片地址']
 
+class find_fotop_img:
+    """
+    例: http://www.fotop.net/joecww/joecww336
+    """
+
+    def __init__(self, url):
+        self.url = url # 傳入的url
+        self.article_name = self.url.split('/')[4]
+        self.__soup = BeautifulSoup(
+            requests.get(url, headers=header
+                         ).content.decode('BIG5-HKSCS', 'ignore'))
+        #self.img_addr=[x['src'] for x in self.__soup.find_all(istarget)]
+        self.img_addr = []
+        def get_more_img(url):
+            soup = BeautifulSoup(
+                requests.get(url, headers=header
+                             ).content.decode('BIG5-HKSCS', 'ignore'))
+            def istarget(tag):
+                return tag.name=='img' and tag.has_attr('title') and tag.has_attr('border')
+            for img in soup.find_all(istarget):
+                self.img_addr.append(img['src'].replace('.thumb',''))
+
+            try:
+                next_page='http://www.fotop.net/'+soup.find_all('img',alt='Next Page')[-1].findParent('a')['href']
+                get_more_img(next_page)
+            except:
+                pass
+
+        get_more_img(self.url)
+
 
 class find_cl_img:
 
@@ -312,6 +342,9 @@ if __name__ == '__main__':
     elif 'curator' in url.split('/')[2]:
         img = find_curator_img(url)
         download_dir = os.path.expanduser('~') + coll_dir + '/curator/'
+    elif 'fotop' in url.split('/')[2]:
+        img = find_fotop_img(url)
+        download_dir = os.path.expanduser('~') + coll_dir + '/fotop/'
     elif 'flickr' in url.split('/')[2]:
         img = find_flickr_img(url)
         download_dir = os.path.expanduser('~') + coll_dir + '/flickr/'
