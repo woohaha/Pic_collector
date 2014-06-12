@@ -22,10 +22,21 @@ class find_example_img:
     這是範例。
     """
 
-    def __init(self, url):
+    def __init__(self, url):
         self.url = url # 傳入的url
         self.article_name = '這個attr用於劃分子目錄'
         self.img_addr = ['這個attr是一個list','用於保存圖片地址']
+
+class find_lofter_img:
+    """
+    http://wanimal.lofter.com/post/17d0d7_15aa344
+    """
+
+    def __init__(self, url):
+        self.url = url # 傳入的url
+        self.article_name = self.url.split('/')[4]
+        soup=BeautifulSoup(requests.get(url,headers=header).content)
+        self.img_addr = [x['bigimgsrc'] for x in soup.find_all('a','imgclasstag')]
 
 class find_fotop_img:
     """
@@ -336,6 +347,9 @@ if __name__ == '__main__':
     elif '163' in url.split('/')[2]:
         img = find_163_img(url)
         download_dir = os.path.expanduser('~') + coll_dir + '/163/'
+    elif 'lofter' in url.split('/')[2]:
+        img = find_lofter_img(url)
+        download_dir = os.path.expanduser('~') + coll_dir + '/lofter/'
     elif 'meizitu' in url.split('/')[2]:
         img = find_meizitu_img(url)
         download_dir = os.path.expanduser('~') + coll_dir + '/meizitu/'
